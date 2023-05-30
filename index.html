@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+// Example code from chatgpt
+
+<head>
+    <title>Flask, roslibjs, and rosbridge</title>
+</head>
+<body>
+    <h1>ROS Web Interface</h1>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/roslib/1.0.3/roslib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/roslibjs/1.1.0/roslib.min.js"></script>
+    <script>
+        var ros = new ROSLIB.Ros({
+            url: 'ws://localhost:9090'  // Replace with your ROS server URL
+        });
+
+        ros.on('connection', function() {
+            console.log('Connected to ROS');
+            // Perform any initialization or setup here
+        });
+
+        ros.on('error', function(error) {
+            console.error('Error connecting to ROS:', error);
+        });
+
+        ros.on('close', function() {
+            console.log('Connection to ROS closed');
+        });
+
+        // Your ROS-related JavaScript code goes here
+        // Subscribe to topics, publish messages, etc.
+    </script>
+</body>
+</html>
