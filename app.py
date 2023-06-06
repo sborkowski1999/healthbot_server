@@ -32,4 +32,5 @@ def handle_marker_coordinates(data):
 if __name__ == '__main__':
     rospy.init_node('websocket_node', anonymous=True)
     rospy.Subscriber('/map_topic', String, map_callback) #change map_topic and String
-    socketio.run(app)
+    app.debug = True
+    socketio.run(app, host='0.0.0.0', port=5000)
