@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
 	<title>Healthbot client</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js">
+        document.querySelector("link[rel='icon']").href = "/favicon.ico";
+    </script>
 </head>
 
 <body>
     <h1>Healthbot destination</h1>
 
-    <img id="map-image" alt="Map Image">
+    <img id="map-image" src="/static/map_image.jpg" alt="Map Image">
 
     <script>
         var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);

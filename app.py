@@ -5,7 +5,7 @@ from std_msgs.msg import String
 
 app = Flask(__name__)
 socketio = SocketIO(app)
-map_image = 'test_image.jpg'
+map_image = 'map_image.jpg'
 
 def map_callback(map_data):
     global map_image
