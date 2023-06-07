@@ -2,7 +2,43 @@
 <html>
 <head>
     <meta charset="UTF-8">
-	<title>Healthbot client</title>
+	<title>HealthBot Client</title>
+	<style>
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    #map-container {
+      width: 100%;
+      height: 300px;
+      background-color: lightgray;
+    }
+
+    #status-label {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    #ontime-label {
+      font-size: 18px;
+      margin-top: 10px;
+    }
+
+    #emergency-button {
+      display: block;
+      width: 240px;
+      height: 80px;
+      margin: 20px auto;
+      background-color: red;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+    }
+  </style>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js">
         document.querySelector("link[rel='icon']").href = "/favicon.ico";
@@ -10,9 +46,17 @@
 </head>
 
 <body>
-    <h1>Healthbot destination</h1>
+    <h1>Healthbot Destination</h1>
 
-    <img id="map-image" src="/static/map_image.jpg" alt="Map Image">
+    
+	<body>
+  <div class="container">
+    <div id="map-container"><img id="map-image" src="/static/map_image.jpg" alt="Map Image"></div>
+    <div id="status-label">Status:</div>
+    <div id="ontime-label">On Time:</div>
+    <button id="emergency-button">EMERGENCY STOP</button>
+  </div>
+</body>
 
     <script>
         var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
