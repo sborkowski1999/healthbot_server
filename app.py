@@ -29,6 +29,11 @@ def handle_marker_coordinates(data):
     y = data.get('y')
     # Need to send the x and y data to ROS
 
+@app.route('/favicon.ico') # gets rid of get favicon.ico error
+def favicon():
+    return app.send_static_file('favicon.ico')
+
+
 if __name__ == '__main__':
     rospy.init_node('websocket_node', anonymous=True)
     rospy.Subscriber('/map_topic', String, map_callback) #change map_topic and String
