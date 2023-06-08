@@ -27,6 +27,7 @@ def handle_connect():
 def handle_marker_coordinates(data):
     x = data.get('x')
     y = data.get('y')
+    print("Coords: (", x, ",", y,")")
     # Need to send the x and y data to ROS
 
 @app.route('/favicon.ico') # gets rid of get favicon.ico error
