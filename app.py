@@ -2,10 +2,12 @@ from flask import Flask, render_template
 from flask_socketio import SocketIO
 import rospy
 from std_msgs.msg import String
+from geometry_msgs.msg import Point
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 map_image = 'map_image.jpg'
+point_publisher = rospy.Publisher('goal_topic', Point, queue_size=10)
 
 def map_callback(map_data):
     global map_image
@@ -28,7 +30,12 @@ def handle_marker_coordinates(data):
     x = data.get('x')
     y = data.get('y')
     print("Coords: (", x, ",", y,")")
-    # Need to send the x and y data to ROS
+    # Create Point message here for goal
+    goal_msg = Point()
+    goal_msg.x = x # need to map points from image to goal
+    goal_msg.y = y
+    goal_msg.z = 0.0
+    point_publisher.publish(goal_msg)
 
 @app.route('/favicon.ico') # gets rid of get favicon.ico error
 def favicon():
