@@ -1,5 +1,6 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO
+from flask_cors import CORS
 import rospy
 from std_msgs.msg import String
 from geometry_msgs.msg import Point
@@ -10,18 +11,19 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
 app = Flask(__name__)
+CORS(app)
 socketio = SocketIO(app)
-map_image = 'map_image.jpg'
+map_image = 'map_image.png'
 goal_publisher = rospy.Publisher('goal_topic', Point, queue_size=10)
 
 bridge = CvBridge()
 
-def occupancy_grid_to_image(map_data):
+def occupancy_grid_to_image(map_grid):
     # Convert the OccupancyGrid message to an image using OpenCV
     # You can modify this implementation based on your specific requirements
-    grid_width = map_data.info.width
-    grid_height = map_data.info.height
-    grid_data = map_data.data
+    grid_width = map_grid.info.width
+    grid_height = map_grid.info.height
+    grid_data = map_grid.data
 
     # Create an empty image with the same dimensions as the grid
     image = np.zeros((grid_height, grid_width), dtype=np.uint8)
@@ -37,18 +39,18 @@ def occupancy_grid_to_image(map_data):
             else:  # Unknown cell
                 image[i, j] = 127
 
-    # Convert the image to JPEG format
-    _, jpeg_image = cv2.imencode('.jpg', image)
+    # Convert the image to png format
+    _, png_image = cv2.imencode('.png', image)
 
-    # Convert the JPEG image data to bytes
-    jpeg_bytes = jpeg_image.tobytes()
+    # Convert the png image data to bytes
+    png_bytes = png_image.tobytes()
 
-    return jpeg_bytes
+    return png_bytes
 
-def map_callback(map_data):
+def map_callback(map_grid):
     global map_image
-    # make the map into an image HERE
-    map_image = occupancy_grid_to_image(map_data)
+    # make the map into an image HERdE
+    map_image = occupancy_grid_to_image(map_grid)
     #emit map image to Websocket clients
     socketio.emit('map_update', map_image)
 
@@ -59,8 +61,6 @@ def index():
 @socketio.on('connect')
 def handle_connect():
     print('User connected!')
-    map_callback(None)
-
 
 @socketio.on('marker_coordinates')
 def handle_marker_coordinates(data):

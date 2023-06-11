@@ -45,9 +45,8 @@
     }
   </style>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js">
-        document.querySelector("link[rel='icon']").href = "/favicon.ico";
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
+    
 </head>
 
 <body>
@@ -56,7 +55,7 @@
     
 	<body>
   <div class="container">
-    <div id="map-container"><img id="map-image" src="/static/map_image.jpg" alt="Map Image"></div>
+    <div id="map-container"><img id="map-image" src="/static/map_image.png" alt="Map Image"></div>
     <div id="status-label">Status:</div>
     <div id="ontime-label">On Time:</div>
     <button id="emergency-button">EMERGENCY STOP</button>
@@ -69,13 +68,13 @@
         socket.on('connect', function() {
             console.log('Connected to the server');
         });
-
-        /*socket.on('map_update', function(map_image) {
-            if (map_image) {
-                document.getElementById('map-image').src = map_image;
-            }
-        });*/
-
+        /*
+        socket.on('map_update', function(map_image) {
+          var blob = new Blob([map_image], { type: 'image/png' });
+          var url = URL.createObjectURL(blob);
+          document.getElementById('map-image').src = url;
+        });
+        */
         var mapContainer = document.getElementById('map-container');
         var currentIndicator = null;
 
