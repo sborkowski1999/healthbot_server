@@ -43,6 +43,27 @@
       border: none;
       border-radius: 5px;
     }
+    #prompt-container {
+      display: none;
+      margin-top: 20px;
+    }
+
+    #prompt-message {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    #prompt-button {
+      display: block;
+      width: 240px;
+      height: 40px;
+      margin-top: 10px;
+      background-color: green;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+    }
   </style>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
@@ -121,7 +142,31 @@
 
           // Emit the coordinates to the server
           socket.emit('marker_coordinates', { x: x, y: y });
+
         }
+
+    socket.on('prompt_patient_load', function() {
+      displayPrompt();
+    });
+														   
+																
+
+    function displayPrompt() {
+      var promptContainer = document.getElementById('prompt-container');
+      promptContainer.style.display = 'block';
+													   
+									
+    }
+
+    function handleDoneLoading() {
+      var promptContainer = document.getElementById('prompt-container');
+      promptContainer.style.display = 'none';
+      socket.emit('patient_done_loading');
+    }
+
+    // Add event listeners
+    var promptButton = document.getElementById('prompt-button');
+    promptButton.addEventListener('click', handleDoneLoading);
     </script>
 </body>
 </html>
