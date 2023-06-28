@@ -18,6 +18,8 @@ goal_publisher = rospy.Publisher('goal_topic', Point, queue_size=10)
 
 bridge = CvBridge()
 
+goal_reached = 0;
+
 def occupancy_grid_to_image(map_grid):
     # Convert the OccupancyGrid message to an image using OpenCV
     # You can modify this implementation based on your specific requirements
@@ -54,6 +56,15 @@ def map_callback(map_grid):
     #emit map image to Websocket clients
     socketio.emit('map_update', map_image)
 
+    if goal_reached==1:
+        socketio.emit('prompt_patient_load')
+        goal_reached = 0;
+
+@socketio.on('patient_done_loading')
+def handle_patient_done_loading():
+    # Handle the patient's completion of loading laundry
+    socketio.emit('robot_start_navigation')
+
 @app.route('/') 
 def index():
     return render_template('index.html') # check in the template folder
@@ -67,12 +78,20 @@ def handle_marker_coordinates(data):
     x = data.get('x')
     y = data.get('y')
     print("Coords: (", x, ",", y,")")
+    
     # Create Point message here for goal
     goal_msg = Point()
     goal_msg.x = x # need to map points from image to goal
     goal_msg.y = y
     goal_msg.z = 0.0
     goal_publisher.publish(goal_msg)
+    goal_reached=1
+
+    if goal_reached==1:
+        socketio.emit('prompt_patient_load')
+        goal_reached = 0;
+
+    
 
 
 @app.route('/favicon.ico') # gets rid of get favicon.ico error
