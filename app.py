@@ -9,6 +9,8 @@ import cv2 # below are used for converting map to image
 import numpy as np
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+import actionlib
+from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 
 app = Flask(__name__)
 CORS(app)
@@ -19,6 +21,11 @@ goal_publisher = rospy.Publisher('goal_topic', Point, queue_size=10)
 bridge = CvBridge()
 
 goal_reached = 0;
+
+client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
+ 
+   
+#client.wait_for_server()
 
 def occupancy_grid_to_image(map_grid):
     # Convert the OccupancyGrid message to an image using OpenCV
@@ -63,7 +70,33 @@ def map_callback(map_grid):
 @socketio.on('patient_done_loading')
 def handle_patient_done_loading():
     # Handle the patient's completion of loading laundry
+    print('Navigating Back To Base')
     socketio.emit('robot_start_navigation')
+    goal = MoveBaseGoal()
+    goal.target_pose.header.frame_id = "map"
+    
+    #Laundry Station Coords
+    x=112
+    y=263
+
+    goal.target_pose.header.stamp = rospy.Time.now()
+    targetX = x - 322/2
+    targetY = y - 296/2
+    goal.target_pose.pose.position.x = -1 * targetX / (322/2) * 15.8/2
+    goal.target_pose.pose.position.y = targetY / (296/2) * 14.7/2
+    
+    print("Coords: (", targetX / (322/2) * 15.8/2, ",", targetY / (296/2) * 14.7/2,")")
+    goal.target_pose.pose.orientation.w = 1.0
+
+    client.send_goal(goal)
+    wait = client.wait_for_result()
+    if not wait:
+        socketio.emit('prompt_unload')
+        rospy.logerr("Action server not available!")
+        rospy.signal_shutdown("Action server not available!")
+        socketio.emit('prompt_unload')
+    else:
+        socketio.emit('prompt_unload')
 
 @app.route('/') 
 def index():
@@ -85,11 +118,28 @@ def handle_marker_coordinates(data):
     goal_msg.y = y
     goal_msg.z = 0.0
     goal_publisher.publish(goal_msg)
-    goal_reached=1
+    #goal_reached=1
+    goal = MoveBaseGoal()
+    goal.target_pose.header.frame_id = "map"
+    goal.target_pose.header.stamp = rospy.Time.now()
+    targetX = x - 322/2
+    targetY = y - 296/2
+    goal.target_pose.pose.position.x = -1 * targetX / (322/2) * 15.8/2
+    goal.target_pose.pose.position.y = targetY / (296/2) * 14.7/2
+    
+    print("Coords: (", targetX / (322/2) * 15.8/2, ",", targetY / (296/2) * 14.7/2,")")
+    goal.target_pose.pose.orientation.w = 1.0
 
-    if goal_reached==1:
+    client.send_goal(goal)
+    wait = client.wait_for_result()
+    if not wait:
         socketio.emit('prompt_patient_load')
-        goal_reached = 0;
+        rospy.logerr("Action server not available!")
+        rospy.signal_shutdown("Action server not available!")
+        socketio.emit('prompt_patient_load')
+    else:
+        socketio.emit('prompt_patient_load')
+    
 
     
 
@@ -99,6 +149,7 @@ def favicon():
     return app.send_static_file('favicon.ico')
 
 rospy.init_node('websocket_node', anonymous=True)
+#rospy.init_node('movebase_client_py')
 rospy.Subscriber('/map_topic', OccupancyGrid, map_callback)
 
 if __name__ == '__main__':

@@ -51,12 +51,33 @@
       font-weight: bold;
     }
 
+    #unload-prompt-container {
+      display: none;
+      margin-top: 20px;
+      text-align: center;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
     #prompt-message {
       font-size: 18px;
       font-weight: bold;
     }
 
     #prompt-button {
+      display: block;
+      width: 300px;
+      margin: 0 auto;
+      height: 60px;
+      margin-top: 20px;
+      background-color: green;
+      color: white;
+      font-size: 32px;
+      border: none;
+      border-radius: 5px;
+    }
+
+    #unload-prompt-button {
       display: block;
       width: 300px;
       margin: 0 auto;
@@ -84,13 +105,17 @@
     <div id="status-label">Status:</div>
     <div id="ontime-label">On Time:</div>
     <button id="emergency-button">EMERGENCY STOP</button>
-    <div id="prompt-container">Please start loading laundry to the robot!
+    <div id="prompt-container">Please start loading laundry to the bin!
       <button id="prompt-button">Done Loading</button>
+    </div>
+    <div id="unload-prompt-container">Please empty laundry bin!
+      <button id="unload-prompt-button">Done Unloading</button>
     </div>
   </div>
 </body>
 
     <script>
+        var idle=1;
         var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
 
         socket.on('connect', function() {
@@ -113,6 +138,7 @@
         mapImage.addEventListener('touchstart', handleMapClick);
 
         function handleMapClick(event) {
+          if(idle==1){
           // Remove the current indicator, if exists
           if (currentIndicator) {
             mapContainer.removeChild(currentIndicator);
@@ -149,11 +175,18 @@
 
           // Emit the coordinates to the server
           socket.emit('marker_coordinates', { x: x, y: y });
+          //status: Heading to Target Room
+        }
 
         }
 
     socket.on('prompt_patient_load', function() {
       displayPrompt();
+    });
+
+    socket.on('prompt_unload', function() {
+      displayUnloadPrompt();
+
     });
 														   
 																
@@ -161,6 +194,18 @@
     function displayPrompt() {
       var promptContainer = document.getElementById('prompt-container');
       promptContainer.style.display = 'block';
+      idle=0;
+      //status: Waiting To be Loaded
+      //time out?
+													   
+									
+    }
+
+    function displayUnloadPrompt() {
+      var unloadPromptContainer = document.getElementById('unload-prompt-container');
+      unloadPromptContainer.style.display = 'block';
+      //status: Waiting to be Unloaded
+      //time out? 
 													   
 									
     }
@@ -169,11 +214,24 @@
       var promptContainer = document.getElementById('prompt-container');
       promptContainer.style.display = 'none';
       socket.emit('patient_done_loading');
+      //status: Heading to Laundry Station
+
+    }
+
+    function handleDoneUnloading() {
+      var unloadPromptContainer = document.getElementById('unload-prompt-container');
+      unloadPromptContainer.style.display = 'none';
+      socket.emit('patient_done_Unloading');
+      idle=1;
+      //status: Idle, Waiting for Target
     }
 
     // Add event listeners
     var promptButton = document.getElementById('prompt-button');
     promptButton.addEventListener('click', handleDoneLoading);
+
+    var unloadPromptButton = document.getElementById('unload-prompt-button');
+    unloadPromptButton.addEventListener('click', handleDoneUnloading);
     </script>
 </body>
 </html>
