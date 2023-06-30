@@ -102,7 +102,7 @@
 	<body>
   <div class="container">
     <div id="map-container"><img id="map-image" src="/static/map_image.png" alt="Map Image"></div>
-    <div id="status-label">Status:</div>
+    <div id="status-label">Status: Idle, Waiting for Target</div>
     <div id="ontime-label">On Time:</div>
     <button id="emergency-button">EMERGENCY STOP</button>
     <div id="prompt-container">Please start loading laundry to the bin!
@@ -176,6 +176,7 @@
           // Emit the coordinates to the server
           socket.emit('marker_coordinates', { x: x, y: y });
           //status: Heading to Target Room
+          document.getElementById('status-label').textContent = 'Status: ' + 'Heading to Target Room';
         }
 
         }
@@ -196,6 +197,7 @@
       promptContainer.style.display = 'block';
       idle=0;
       //status: Waiting To be Loaded
+      document.getElementById('status-label').textContent = 'Status: ' + 'Waiting To be Loaded';
       //time out?
 													   
 									
@@ -205,6 +207,7 @@
       var unloadPromptContainer = document.getElementById('unload-prompt-container');
       unloadPromptContainer.style.display = 'block';
       //status: Waiting to be Unloaded
+      document.getElementById('status-label').textContent = 'Status: ' + 'Waiting To be Unloaded';
       //time out? 
 													   
 									
@@ -215,6 +218,7 @@
       promptContainer.style.display = 'none';
       socket.emit('patient_done_loading');
       //status: Heading to Laundry Station
+      document.getElementById('status-label').textContent = 'Status: ' + 'Heading to Laundry Station';
 
     }
 
@@ -224,6 +228,7 @@
       socket.emit('patient_done_Unloading');
       idle=1;
       //status: Idle, Waiting for Target
+      document.getElementById('status-label').textContent = 'Status: ' + 'Idle, Waiting for Target Selection';
     }
 
     // Add event listeners
