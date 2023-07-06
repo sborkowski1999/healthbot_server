@@ -89,6 +89,13 @@
       border: none;
       border-radius: 5px;
     }
+
+    #set-station-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    }
   </style>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script>
@@ -101,6 +108,7 @@
     
 	<body>
   <div class="container">
+    <button id="set-station-button">Set Station</button>
     <div id="map-container"><img id="map-image" src="/static/map_image.png" alt="Map Image"></div>
     <div id="status-label">Status: Idle, Waiting for Target</div>
     <div id="ontime-label">On Time:</div>
@@ -117,6 +125,7 @@
     <script>
         var idle=1;
         var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+        var selectingLaundryStation = false;
 
         socket.on('connect', function() {
             console.log('Connected to the server');
@@ -130,6 +139,7 @@
         */
         var mapContainer = document.getElementById('map-container');
         var currentIndicator = null;
+        var currentStationIndicator = null;
 
         // Add event listener to the image element
         var mapImage = document.getElementById('map-image');
@@ -140,10 +150,7 @@
         function handleMapClick(event) {
           if(idle==1){
           // Remove the current indicator, if exists
-          if (currentIndicator) {
-            mapContainer.removeChild(currentIndicator);
-            currentIndicator = null;
-          }
+          
 
           // Get the position of the image within the container
           var containerRect = mapContainer.getBoundingClientRect();
@@ -154,6 +161,34 @@
 
           // Create an <img> element for the 'x' indicator
           var xIndicator = document.createElement('img');
+          var stationIndicator = document.createElement('img');
+          if(selectingLaundryStation){
+            if (currentStationIndicator) {
+            mapContainer.removeChild(currentStationIndicator);
+            currentStationIndicator = null;
+          }
+            stationIndicator.src = '/static/xRed.png'; // Path to the 'x' image
+            stationIndicator.className = 'station-indicator';
+
+          // Calculate the position to align the center of the 'x' indicator
+          var xIndicatorSize = 36; // Adjust the size of the 'x' indicator as needed
+          var xOffset = xIndicatorSize / 2;
+          var yOffset = xIndicatorSize / 2;
+
+          // Set the position of the 'x' indicator relative to the image
+          stationIndicator.style.position = 'absolute';
+          stationIndicator.style.left = -xOffset+(containerRect.left + x) + 'px';
+          stationIndicator.style.top = -yOffset+(containerRect.top + y) + 'px';
+
+          // Append the 'x' indicator to the map container
+          mapContainer.appendChild(stationIndicator);
+          currentStationIndicator = stationIndicator;
+          }
+          else{
+            if (currentIndicator) {
+            mapContainer.removeChild(currentIndicator);
+            currentIndicator = null;
+          }
           xIndicator.src = '/static/x.png'; // Path to the 'x' image
           xIndicator.className = 'x-indicator';
 
@@ -169,14 +204,28 @@
 
           // Append the 'x' indicator to the map container
           mapContainer.appendChild(xIndicator);
+          currentIndicator = xIndicator;
+          }
+          
 
           // Set the current indicator to the new 'x' indicator
-          currentIndicator = xIndicator;
+          
+          
 
           // Emit the coordinates to the server
-          socket.emit('marker_coordinates', { x: x, y: y });
-          //status: Heading to Target Room
-          document.getElementById('status-label').textContent = 'Status: ' + 'Heading to Target Room';
+          if(selectingLaundryStation){
+            socket.emit('station_coordinates', { xS: x, yS: y });
+            selectingLaundryStation=0;
+            alert("Laundry Station Location Updated")
+            idle=1;
+          }
+          else{
+            socket.emit('marker_coordinates', { x: x, y: y });
+            //status: Heading to Target Room
+            document.getElementById('status-label').textContent = 'Status: ' + 'Heading to Target Room';
+          }
+
+          
         }
 
         }
@@ -199,6 +248,7 @@
       //status: Waiting To be Loaded
       document.getElementById('status-label').textContent = 'Status: ' + 'Waiting To be Loaded';
       //time out?
+      setTimeout(handleDoneLoading, 20000);
 													   
 									
     }
@@ -231,12 +281,35 @@
       document.getElementById('status-label').textContent = 'Status: ' + 'Idle, Waiting for Target Selection';
     }
 
+    function handleSetTarget() {
+      selectingLaundryStation=true;
+    }
+
+    function handleEmergencyStop() {
+      //save current goal
+      //stop
+      socket.emit('EMERGENCY_STOP');
+    }
+
+    function handleResume() {
+      //resume goal
+      socket.emit('marker_coordinates', { x: x, y: y });
+            //status: Heading to Target Room
+            document.getElementById('status-label').textContent = 'Status: ' + 'Heading to Target Room';
+    }
+
     // Add event listeners
     var promptButton = document.getElementById('prompt-button');
     promptButton.addEventListener('click', handleDoneLoading);
 
     var unloadPromptButton = document.getElementById('unload-prompt-button');
     unloadPromptButton.addEventListener('click', handleDoneUnloading);
+
+    var setStationButton = document.getElementById('set-station-button');
+    setStationButton.addEventListener('click', handleSetTarget);
+
+    var emergencyButton = document.getElementById('emergency-button');
+    emergencyButton.addEventListener('click', handleEmergencyStop);
     </script>
 </body>
 </html>

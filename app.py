@@ -11,6 +11,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
+from flask import session
 
 app = Flask(__name__)
 CORS(app)
@@ -20,7 +21,12 @@ goal_publisher = rospy.Publisher('goal_topic', Point, queue_size=10)
 
 bridge = CvBridge()
 
-goal_reached = 0;
+goal_reached = 0
+
+#Default Laundry Station Coords
+
+laundryStation_X = 322/2
+laundryStation_Y = 296/2
 
 client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
  
@@ -76,8 +82,9 @@ def handle_patient_done_loading():
     goal.target_pose.header.frame_id = "map"
     
     #Laundry Station Coords
-    x=112
-    y=263
+    x=laundryStation_X
+    y=laundryStation_Y
+    print("Station Coords: (", x, ",", y,")")
 
     goal.target_pose.header.stamp = rospy.Time.now()
     targetX = x - 322/2
@@ -91,12 +98,12 @@ def handle_patient_done_loading():
     client.send_goal(goal)
     wait = client.wait_for_result()
     if not wait:
-        socketio.emit('prompt_unload')
         rospy.logerr("Action server not available!")
         rospy.signal_shutdown("Action server not available!")
-        socketio.emit('prompt_unload')
     else:
-        socketio.emit('prompt_unload')
+        print(str(client.get_state()))
+        if(str(client.get_state())=='3'):
+            socketio.emit('prompt_unload')
 
 @app.route('/') 
 def index():
@@ -133,16 +140,28 @@ def handle_marker_coordinates(data):
     client.send_goal(goal)
     wait = client.wait_for_result()
     if not wait:
-        socketio.emit('prompt_patient_load')
         rospy.logerr("Action server not available!")
         rospy.signal_shutdown("Action server not available!")
-        socketio.emit('prompt_patient_load')
     else:
-        socketio.emit('prompt_patient_load')
-    
+        print(str(client.get_state()))
+        if(str(client.get_state())=='3'):
+            socketio.emit('prompt_patient_load')
+
+@socketio.on('station_coordinates')
+def handle_station_coordinates(data):
+    global laundryStation_X
+    global laundryStation_Y
+    laundryStation_X = data.get('xS')
+    laundryStation_Y = data.get('yS')
+    print("station_coordinates: (", laundryStation_X, ",", laundryStation_Y,")")
 
     
 
+    
+@socketio.on('EMERGENCY_STOP')
+def handleEmegencyStop():
+    print("EMERGENCY_STOP")
+    client.cancel_goal()
 
 @app.route('/favicon.ico') # gets rid of get favicon.ico error
 def favicon():
