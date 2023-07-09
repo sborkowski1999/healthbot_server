@@ -12,6 +12,7 @@ from cv_bridge import CvBridge
 import actionlib
 from move_base_msgs.msg import MoveBaseAction, MoveBaseGoal
 from flask import session
+import time
 
 app = Flask(__name__)
 CORS(app)
@@ -27,6 +28,8 @@ goal_reached = 0
 
 laundryStation_X = 322/2
 laundryStation_Y = 296/2
+
+start_time = time.time()
 
 client = actionlib.SimpleActionClient('move_base',MoveBaseAction)
  
@@ -109,8 +112,22 @@ def handle_patient_done_loading():
 def index():
     return render_template('index.html') # check in the template folder
 
+def send_uptime():
+    while(1):
+        uptime_seconds = int(time.time() - start_time)
+        uptime_hours = uptime_seconds // 3600
+        uptime_minutes = (uptime_seconds % 3600) // 60
+        uptime_secondsR = uptime_seconds % 60
+        uptime_formatted = "{:02d}:{:02d}:{:02d}".format(uptime_hours, uptime_minutes, uptime_secondsR)
+        socketio.emit('server_uptime', uptime_formatted)
+        time.sleep(1)
+
 @socketio.on('connect')
 def handle_connect():
+    print('User connected!')
+
+    # Schedule sending uptime every second
+    socketio.start_background_task(send_uptime)
     print('User connected!')
 
 @socketio.on('marker_coordinates')

@@ -111,7 +111,7 @@
     <button id="set-station-button">Set Station</button>
     <div id="map-container"><img id="map-image" src="/static/map_image.png" alt="Map Image"></div>
     <div id="status-label">Status: Idle, Waiting for Target</div>
-    <div id="ontime-label">On Time:</div>
+    <div id="ontime-label">On Time: <span id="ontime-counter">0</span></div>
     <button id="emergency-button">EMERGENCY STOP</button>
     <div id="prompt-container">Please start loading laundry to the bin!
       <button id="prompt-button">Done Loading</button>
@@ -238,6 +238,12 @@
       displayUnloadPrompt();
 
     });
+
+  var ontimeCounter = document.getElementById('ontime-counter');
+
+  socket.on('server_uptime', function(uptimeFormatted) {
+    ontimeCounter.textContent = uptimeFormatted;
+  });
 														   
 																
 
